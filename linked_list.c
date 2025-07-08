@@ -24,7 +24,7 @@ struct linked_list * linked_list_create() {
     
     struct linked_list* empty_list = (struct linked_list*)malloc_fptr(sizeof(struct linked_list));
     return empty_list != NULL ? 
-        (empty_list->head = NULL, empty_list) : 
+        (empty_list->head = NULL, empty_list->size = 0, empty_list) : 
         empty_list;
 }
 
@@ -57,15 +57,7 @@ size_t linked_list_size(struct linked_list * ll) {
         return SIZE_MAX;
     }
 
-    size_t n = 0;
-    struct node* curr = ll->head;
-
-    while (curr != NULL) {
-        n += 1;
-        curr = curr->next;
-    }
-
-    return n;
+    return ll->size;
 }
 
 // Inserts an element at the end of the linked_list.
@@ -125,6 +117,7 @@ bool linked_list_insert(struct linked_list * ll,
         ll->head = new_node;
     }
 
+    ll->size += 1;
     return true;
 }
 
@@ -185,6 +178,7 @@ bool linked_list_remove(struct linked_list * ll,
         free_fptr(to_remove);
     }
 
+    ll->size -=1 ;
     return true;
 }
 

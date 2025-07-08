@@ -22,6 +22,7 @@
 struct node;
 struct linked_list {
     struct node* head;
+    size_t size;
 };
 
 // A node in the linked_list structure.
