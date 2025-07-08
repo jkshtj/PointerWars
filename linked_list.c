@@ -1,4 +1,5 @@
 #include "linked_list.h"
+#include "linked_list_allocator.h"
 #include "stdio.h"
 
 // Function pointers to (potentially) custom malloc() and

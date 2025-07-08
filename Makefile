@@ -9,7 +9,7 @@ CFLAGS := $(WARNINGS_ARE_ERRORS) $(COMPILER_OPTIMIZATIONS)
 # Add any source files that you need to be compiled
 # for your linked list here.
 #
-LINKED_LIST_SOURCE_FILES := linked_list.c
+LINKED_LIST_SOURCE_FILES := linked_list_allocator.h linked_list.c
 LINKED_LIST_OBJECT_FILES := linked_list.o
 
 # Functional testing support
