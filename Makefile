@@ -30,7 +30,7 @@ run_functional_tests_gdb: linked_list_test_program
 	LD_LIBRARY_PATH=`pwd`:$$LD_LIBRARY_PATH gdb ./linked_list_test_program
 
 run_valgrind_tests: linked_list_test_program
-	LD_LIBRARY_PATH=`pwd`:$$LD_LIBRARY_PATH valgrind ./linked_list_test_program
+	LD_LIBRARY_PATH=`pwd`:$$LD_LIBRARY_PATH leaks --atExit -- ./linked_list_test_program
 
 %.o : %.c
 	$(CC) -c $(CFLAGS) $^ -o $@

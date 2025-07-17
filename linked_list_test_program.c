@@ -1,3 +1,6 @@
+// MIT License. Copyright (c) 2025 Kshitij Jain
+// See LICENSE file in the root of this repository.
+
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -144,6 +147,15 @@ void check_empty_list_properties(void) {
     linked_list_delete(ll);
     PASS(check_empty_list_properties)
 }
+
+// static void print(struct linked_list* ll) {
+//      struct node* curr = ll->head;
+//      while (curr != NULL) {
+//           printf("%d, ", curr->data);
+//           curr = curr->next;
+//      }
+//      printf("\n");
+// }
 
 void check_insertion_functionality(void) {
     TEST(check_insertion_functionality)

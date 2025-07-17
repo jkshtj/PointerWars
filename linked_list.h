@@ -1,3 +1,6 @@
+// MIT License. Copyright (c) 2025 Kshitij Jain
+// See LICENSE file in the root of this repository.
+
 #ifndef LINKED_LIST_H_
 #define LINKED_LIST_H_
 
@@ -22,6 +25,7 @@
 struct node;
 struct linked_list {
     struct node* head;
+    struct node* tail;
     size_t size;
 };
 

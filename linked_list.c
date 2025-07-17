@@ -1,6 +1,11 @@
+// MIT License. Copyright (c) 2025 Kshitij Jain
+// See LICENSE file in the root of this repository.
+
+#include <stdio.h>
+#include <assert.h>
+
 #include "linked_list.h"
 #include "linked_list_allocator.h"
-#include "stdio.h"
 
 // Function pointers to (potentially) custom malloc() and
 // free() functions.
@@ -19,13 +24,9 @@ static void   (*free_fptr)(void* addr)    = NULL;
 // Returns a new linked_list on success, NULL on failure.
 //
 struct linked_list * linked_list_create() {
-    if (malloc_fptr == NULL || free_fptr == NULL) {
-        return NULL;
-    }
-    
     struct linked_list* empty_list = (struct linked_list*)malloc_fptr(sizeof(struct linked_list));
     return empty_list != NULL ? 
-        (empty_list->head = NULL, empty_list->size = 0, empty_list) : 
+        (empty_list->head = NULL, empty_list->tail = NULL, empty_list->size = 0, empty_list) : 
         empty_list;
 }
 
@@ -83,39 +84,59 @@ bool linked_list_insert_front(struct linked_list * ll,
     return linked_list_insert(ll, 0, data);
 }
 
+// Internal utility function to initialize an already 
+// allocated iterator.
+// \param iter        : Allocated iterator.  
+// \param linked_list : Pointer to linked_list.
+// \param index       : Index of the linked list to start at.
+//
+static void _linked_list_init_iterator(struct iterator* iter, struct linked_list* ll, size_t index) {
+    assert(iter != NULL && "Iterator to be populated must not be NULL!");
+
+    struct node* curr = ll->head;
+    size_t i = index;
+    while (i-- > 0) {
+        curr = curr->next;
+    }
+
+    iter->ll = ll;
+    iter->current_index = index;
+    iter->current_node = curr;
+    iter->data = curr->data;
+}
+
 // Inserts an element at a specified index in the linked_list.
 // \param ll    : Pointer to linked_list.
 // \param index : Index to insert data at.
 // \param data  : Data to insert.
 // Returns TRUE on success, FALSE otherwise.
 //
-bool linked_list_insert(struct linked_list * ll,
+bool linked_list_insert(struct linked_list* ll,
                         size_t index,
                         unsigned int data) 
 {
-    if (ll == NULL || linked_list_size(ll) < index) {
+    size_t ll_size = linked_list_size(ll);
+    if (ll == NULL || ll_size < index) {
         return false;
-    }
-    
-    struct node* prev = NULL;
-    struct node* curr = ll->head;
-    while (index-- != 0) {
-        prev = curr;
-        curr = curr->next;
     }
 
     struct node* new_node = (struct node*)malloc_fptr(sizeof(struct node));
     new_node->data = data;
-    new_node->next = NULL;
 
-    if (ll->head == NULL) {
-        ll->head = new_node;
-    } else if (prev != NULL) {
-        new_node->next = prev->next;
-        prev->next = new_node;
-    } else {
+    if (index == 0) {
         new_node->next = ll->head;
         ll->head = new_node;
+        if (ll_size == 0) ll->tail = ll->head;
+    } else if (index == ll_size) {
+        ll->tail->next = new_node;
+        ll->tail = new_node;
+    } else {
+        struct iterator iter;
+        _linked_list_init_iterator(&iter, ll, index-1);
+        
+        struct node* prev = iter.current_node;
+        new_node->next = prev->next;
+        prev->next = new_node;
     }
 
     ll->size += 1;
@@ -167,15 +188,15 @@ bool linked_list_remove(struct linked_list * ll,
         ll->head = ll->head->next;
         free_fptr(to_remove);
     } else {
-        struct node* prev = NULL;
-        struct node* curr = ll->head;
-        while (index-- > 0) {
-            prev = curr;
-            curr = curr->next;
-        }
+        struct iterator iter;
+        _linked_list_init_iterator(&iter, ll, index-1);
 
+        struct node* prev = iter.current_node;
         struct node* to_remove = prev->next;
-        prev->next = curr->next;
+        prev->next = to_remove->next;
+        if (ll->tail == to_remove) {
+            ll->tail = prev;
+        }
         free_fptr(to_remove);
     }
 
@@ -196,24 +217,7 @@ struct iterator * linked_list_create_iterator(struct linked_list * ll,
     }
 
     struct iterator* iter = (struct iterator*)malloc_fptr(sizeof(struct iterator));
-    iter->ll = ll;
-    iter->current_index = index;
-
-    if (index == 0) {
-        iter->current_node = ll->head;
-        iter->data = ll->head->data;
-    } else {
-        struct node* prev = NULL;
-        struct node* curr = ll->head;
-        while (index-- != 0) {
-            prev = curr;
-            curr = curr->next;
-        }
-    
-        iter->current_node = prev;
-        iter->data = prev->data;
-    }
-
+    _linked_list_init_iterator(iter, ll, index);
     return iter;
 }
 

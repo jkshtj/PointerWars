@@ -1,3 +1,6 @@
+// MIT License. Copyright (c) 2025 Kshitij Jain
+// See LICENSE file in the root of this repository.
+
 #include "linked_list.h"
 #include "stdlib.h"
 #include "stdio.h"
@@ -8,23 +11,23 @@
 #define DEFAULT_ALLOC_SIZE_BYTES 4096
 #define DEFAULT_NUM_SLABS 512
 
-enum Type {
-    LL,
-    LL_NODE,
-    LL_ITER
-};
+// enum Type {
+//     LL,
+//     LL_NODE,
+//     LL_ITER
+// };
 
-size_t align_of(enum Type type) {
-    switch (type)
-    {
-    case LL: return alignof(struct linked_list);
-    case LL_NODE: return alignof(struct node);
-    case LL_ITER: return alignof(struct iterator);
-    default:
-        FAIL("Alignment of unknown object was requested.");
-        exit(-1);
-    }
-}
+// size_t align_of(enum Type type) {
+//     switch (type)
+//     {
+//     case LL: return alignof(struct linked_list);
+//     case LL_NODE: return alignof(struct node);
+//     case LL_ITER: return alignof(struct iterator);
+//     default:
+//         FAIL("Alignment of unknown object was requested.");
+//         exit(-1);
+//     }
+// }
 
 struct slab {
     char* data;
@@ -61,8 +64,8 @@ char* align_to(char* ptr, size_t alignment) {
     return (char*)aligned;
 }
 
-char* slab_malloc(struct slab* slab, size_t size, enum Type type) {
-    size_t alignment = align_of(type);
+char* slab_malloc(struct slab* slab, size_t size) {
+    size_t alignment = 8; //align_of(type);
     char* aligned_ptr = align_to(slab->curr, alignment);
     char* new_end = aligned_ptr + size;
 
@@ -114,13 +117,13 @@ bool bump_ptr_allocator_destroy(struct bump_ptr_allocator* allocator) {
     return true;
 }
 
-void* bump_ptr_allocator_malloc(struct bump_ptr_allocator* allocator, size_t size, enum Type type) {
+void* bump_ptr_allocator_malloc(struct bump_ptr_allocator* allocator, size_t size) {
     if (allocator == NULL) {
         FAIL("Allocator instance cannot be NULL");
         exit(-1);
     }
     
-    if (slab_malloc(&allocator->slabs[allocator->slab_ptr], size, type) != NULL) {
+    if (slab_malloc(&allocator->slabs[allocator->slab_ptr], size) != NULL) {
         return (void*)allocator->slabs[allocator->slab_ptr].curr;
     }
 
@@ -138,7 +141,7 @@ void* bump_ptr_allocator_malloc(struct bump_ptr_allocator* allocator, size_t siz
         return NULL;
     }
 
-    if (slab_malloc(&allocator->slabs[allocator->slab_ptr], size, type) != NULL) {
+    if (slab_malloc(&allocator->slabs[allocator->slab_ptr], size) != NULL) {
         return (void*)allocator->slabs[allocator->slab_ptr].curr;
     }
 
