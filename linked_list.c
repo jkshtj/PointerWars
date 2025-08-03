@@ -12,6 +12,30 @@
 //
 static void * (*malloc_fptr)(size_t size) = NULL;
 static void   (*free_fptr)(void* addr)    = NULL; 
+static struct bump_ptr_allocator allocator;
+
+void* custom_malloc(size_t size) {
+    return bump_ptr_allocator_malloc(&allocator, size);
+}
+
+void custom_free(void* addr) {
+    (void)addr;
+}
+
+void __linked_list_setup() {
+    if (!allocator.initialized) {
+        bump_ptr_allocator_init(&allocator);
+        linked_list_register_malloc(&custom_malloc);
+        linked_list_register_free(&custom_free);
+    }
+}
+
+void __linked_list_cleanup() {
+    if (allocator.initialized) {
+        bump_ptr_allocator_destroy(&allocator);
+    }
+}
+
 
 // (void)(malloc_fptr);
 // (void)(free_fptr);

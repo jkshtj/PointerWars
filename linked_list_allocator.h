@@ -55,6 +55,10 @@ bool slab_destroy(struct slab* slab) {
     }
 
     free(slab->data);
+    slab->curr = NULL;
+    slab->end = NULL;
+    slab->alloc_size = 0;
+
     return true;
 }
 
@@ -66,16 +70,15 @@ char* align_to(char* ptr, size_t alignment) {
 
 char* slab_malloc(struct slab* slab, size_t size) {
     size_t alignment = 8; //align_of(type);
-    char* aligned_ptr = align_to(slab->curr, alignment);
-    char* new_end = aligned_ptr + size;
+    char* new_alloc = align_to(slab->curr, alignment);
+    char* new_alloc_end = new_alloc + size;
 
-    if (new_end > slab->end) {
+    if (new_alloc_end > slab->end) {
         return NULL;
     }
 
-    slab->curr = aligned_ptr;
-    slab->end = (char*)new_end;
-    return aligned_ptr;
+    slab->curr = new_alloc_end;
+    return new_alloc;
 }
 
 struct bump_ptr_allocator {
@@ -88,7 +91,7 @@ struct bump_ptr_allocator {
 
 bool bump_ptr_allocator_init(struct bump_ptr_allocator* allocator) {
     if (allocator->initialized) {
-        FAIL("Allocator instance cannot be NULL");
+        FAIL("Allocator instance cannot be intialized multiple times.");
         exit(-1);
     }
 
@@ -114,6 +117,12 @@ bool bump_ptr_allocator_destroy(struct bump_ptr_allocator* allocator) {
     for (int i = 0; i < DEFAULT_NUM_SLABS; i++) {
         slab_destroy(&allocator->slabs[i]);
     }
+    
+    allocator->slab_ptr = 0;
+    allocator->last_alloc_size = 0;
+    allocator->total_mem_allocated = 0;
+    allocator->initialized = false;
+
     return true;
 }
 
@@ -123,8 +132,9 @@ void* bump_ptr_allocator_malloc(struct bump_ptr_allocator* allocator, size_t siz
         exit(-1);
     }
     
-    if (slab_malloc(&allocator->slabs[allocator->slab_ptr], size) != NULL) {
-        return (void*)allocator->slabs[allocator->slab_ptr].curr;
+    char* alloc = slab_malloc(&allocator->slabs[allocator->slab_ptr], size);
+    if (alloc != NULL) {
+        return alloc;
     }
 
     if (allocator->slab_ptr+1 >= DEFAULT_NUM_SLABS) {
@@ -141,7 +151,8 @@ void* bump_ptr_allocator_malloc(struct bump_ptr_allocator* allocator, size_t siz
         return NULL;
     }
 
-    if (slab_malloc(&allocator->slabs[allocator->slab_ptr], size) != NULL) {
+    alloc = slab_malloc(&allocator->slabs[allocator->slab_ptr], size);
+    if (alloc != NULL) {
         return (void*)allocator->slabs[allocator->slab_ptr].curr;
     }
 

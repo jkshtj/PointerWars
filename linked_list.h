@@ -141,4 +141,12 @@ bool linked_list_register_malloc(void* (*malloc)(size_t));
 //
 bool linked_list_register_free(void (*free)(void*));
 
+// Houses any global setup code that must be run
+// Before `liblinked_list.so` is used.
+void __linked_list_setup();
+
+// Houses any global clean up code that must be run
+// Before `liblinked_list.so` is used.
+void __linked_list_cleanup();
+
 #endif
